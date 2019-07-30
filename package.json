@@ -1,0 +1,24 @@
+{
+  "name": "wiegand-daemon",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "start": "nodemon --watch '**/*.ts' --exec 'ts-node' index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Uice Lu",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^12.6.8",
+    "nodemon": "^1.19.1",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
+  },
+  "dependencies": {
+    "@types/moment-timezone": "^0.5.12",
+    "moment": "^2.24.0",
+    "moment-timezone": "^0.5.26",
+    "quick-local-ip": "^1.0.7"
+  }
+}
