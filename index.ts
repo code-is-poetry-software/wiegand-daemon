@@ -2,7 +2,12 @@ import dgram from "dgram";
 import { Socket, AddressInfo } from "net";
 import { parseData } from "./wiegand-control/utils";
 import WgCtl from "./wiegand-control/WgCtl";
+import getLocalIp from "./utils/getLocalIp";
 
+const localIp = getLocalIp();
+console.log(`[DMN] Local ip address is ${localIp}.`);
+
+// TODO needs to be in writable config file
 const localPort = 6000;
 const remotePort = 8003;
 const remoteHost = "localhost";
@@ -65,7 +70,7 @@ client.on("data", async data => {
   }
   let controller = controllerBySerial[serial];
   if (!controller) {
-    controller = new WgCtl(socket, parsedData.serial);
+    controller = new WgCtl(socket, parsedData.serial, localIp, localPort);
     await controller.detected;
     controllerBySerial[serial] = controller;
   }
