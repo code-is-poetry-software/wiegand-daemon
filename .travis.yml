@@ -1,0 +1,4 @@
+deploy:
+  provider: npm
+  email: "uicestone@gmail.com"
+  api_key: "${AUTH_TOKEN}"
