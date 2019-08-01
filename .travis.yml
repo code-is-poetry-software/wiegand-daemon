@@ -1,3 +1,8 @@
+language: node_js
+node_js:
+  - lts/*
+cache: yarn
+script: yarn build
 deploy:
   provider: npm
   email: "uicestone@gmail.com"
