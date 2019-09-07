@@ -1,7 +1,6 @@
 import dgram from "dgram";
 import { Socket, AddressInfo } from "net";
-import { parseData } from "./wiegand-control/utils";
-import WgCtl from "./wiegand-control/WgCtl";
+import WgCtl, { parseData } from "wiegand-control";
 import getLocalIp from "./utils/getLocalIp";
 
 const localIp = getLocalIp();

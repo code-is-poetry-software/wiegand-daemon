@@ -21,6 +21,7 @@
     "local-ip": "^2.0.0",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.26",
-    "quick-local-ip": "^1.0.7"
+    "quick-local-ip": "^1.0.7",
+    "wiegand-control": "^0.1.6"
   }
 }

@@ -1839,6 +1839,16 @@ widest-line@^2.0.0:
   dependencies:
     string-width "^2.1.1"
 
+wiegand-control@^0.1.6:
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/wiegand-control/-/wiegand-control-0.1.6.tgz#dba6c45e18f3730ba79b5eb84b8c3cb5b4cf99a2"
+  integrity sha512-uIGpyC2jRFX/4LpVK4NEBGzbFO58lWevI84YKESmVhVMbac76kbEAAHV/1caZ2UADE60Lxzyezek253NCVaGBg==
+  dependencies:
+    "@types/moment-timezone" "^0.5.12"
+    "@types/node" "^12.6.8"
+    moment "^2.24.0"
+    moment-timezone "^0.5.26"
+
 wrappy@1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/wrappy/-/wrappy-1.0.2.tgz#b5243d8f3ec1aa35f1364605bc0d1036e30ab69f"
