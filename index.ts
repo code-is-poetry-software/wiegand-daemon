@@ -2,14 +2,16 @@ import dgram from "dgram";
 import { Socket, AddressInfo } from "net";
 import WgCtl, { parseData } from "wiegand-control";
 import getLocalIp from "./utils/getLocalIp";
+import env from "dotenv";
+
+env.config();
 
 const localIp = getLocalIp();
 console.log(`[DMN] Local ip address is ${localIp}.`);
 
-// TODO needs to be in writable config file
-const localPort = 6000;
-const remotePort = 8003;
-const remoteHost = "localhost";
+const localPort = +(process.env.LOCAL_PORT || 6000);
+const remotePort = +(process.env.REMOTE_PORT || 8000);
+const remoteHost = process.env.REMOTE_HOST || "api.kangazone.com";
 
 const controllerBySerial: { [serial: number]: WgCtl } = {};
 
