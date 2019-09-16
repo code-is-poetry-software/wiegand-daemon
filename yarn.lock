@@ -1839,10 +1839,10 @@ widest-line@^2.0.0:
   dependencies:
     string-width "^2.1.1"
 
-wiegand-control@^0.1.6:
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/wiegand-control/-/wiegand-control-0.1.6.tgz#dba6c45e18f3730ba79b5eb84b8c3cb5b4cf99a2"
-  integrity sha512-uIGpyC2jRFX/4LpVK4NEBGzbFO58lWevI84YKESmVhVMbac76kbEAAHV/1caZ2UADE60Lxzyezek253NCVaGBg==
+wiegand-control@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/wiegand-control/-/wiegand-control-0.1.7.tgz#a73f61bf540e68bad3829eda122bb7341864693e"
+  integrity sha512-ZDIktAjoAwA0lGekNzhWYH3KLGAOoDmQV5bQlPKHY1SNhptGJKo5k9eWnRukc5zc+U7ilMh8Jp3stuENy60cEQ==
   dependencies:
     "@types/moment-timezone" "^0.5.12"
     "@types/node" "^12.6.8"
