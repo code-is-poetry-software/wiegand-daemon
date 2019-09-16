@@ -64,9 +64,9 @@ client.on("data", async data => {
   console.log(`[DMN] Socket got remote data\n`, data);
   const parsedData = parseData(data);
   const serial = parsedData.serial;
-  if (!serial) {
-    client.destroy(new Error("No controller serial could be parsed."));
-  }
+  // if (!serial) {
+  //   client.destroy(new Error("No controller serial could be parsed."));
+  // }
   let controller = controllerBySerial[serial];
   if (!controller) {
     controller = new WgCtl(socket, parsedData.serial, localIp, localPort);
