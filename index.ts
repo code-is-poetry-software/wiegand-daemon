@@ -52,10 +52,10 @@ client.on("connect", () => {
 });
 
 client.on("close", () => {
-  console.log(`[DMN] Socket closed. Reconnect after 1 second.`);
+  console.log(`[DMN] Socket closed. Reconnect after 10 seconds.`);
   setTimeout(() => {
     client.connect(remotePort, remoteHost);
-  }, 1000);
+  }, 10000);
 });
 
 client.on("error", err => {
