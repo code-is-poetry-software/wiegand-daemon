@@ -1,6 +1,6 @@
 {
   "name": "wiegand-daemon",
-  "version": "0.1.18",
+  "version": "1.0.0",
   "description": "",
   "main": "index.ts",
   "bin": {
@@ -32,6 +32,6 @@
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.26",
     "quick-local-ip": "^1.0.7",
-    "wiegand-control": "^0.1.17"
+    "wiegand-control": "^1.0.0"
   }
 }
