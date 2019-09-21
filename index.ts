@@ -19,14 +19,14 @@ const socket = dgram.createSocket("udp4"); // local network using udp
 const client = new TcpSocket(); // remote network using tcp
 
 socket.on("error", err => {
-  console.log(`[DMN] Socket error:\n${err.stack}.`);
+  console.log(`[DMN] Local socket error:\n${err.stack}.`);
   socket.close();
 });
 
 socket.on("message", (msg, rinfo) => {
   const message = parseData(msg);
   console.log(
-    `[DMN] Socket got local message from ${rinfo.address}:${rinfo.port}. \n`,
+    `[DMN] Local socket got local message from ${rinfo.address}:${rinfo.port}. \n`,
     message
   );
   if (message.funcName === "Search") {
@@ -49,7 +49,9 @@ socket.on("message", (msg, rinfo) => {
 
 socket.on("listening", async () => {
   const address = socket.address() as AddressInfo;
-  console.log(`[DMN] Socket listening ${address.address}:${address.port}.`);
+  console.log(
+    `[DMN] Local socket listening ${address.address}:${address.port}.`
+  );
   await searchLocalControllers(socket);
   client.connect(remotePort, remoteHost);
 });
@@ -59,23 +61,33 @@ socket.bind(localPort);
 client.on("connect", () => {
   const address = client.remoteAddress;
   const port = client.remotePort;
-  console.log(`[DMN] Socket connected to ${address}:${port}.`);
+  console.log(`[DMN] Remote socket connected to ${address}:${port}.`);
+  client.setTimeout(360000);
   // TODO send local ip to remote server
 });
 
+client.on("timeout", () => {
+  console.log(`[DMN] Remote socket timeout.`);
+  client.destroy();
+});
+
 client.on("close", () => {
-  console.log(`[DMN] Socket closed. Reconnect after 10 seconds.`);
+  console.log(`[DMN] Remote socket closed, reconnect in 10 seconds.`);
   setTimeout(() => {
     client.connect(remotePort, remoteHost);
   }, 10000);
 });
 
 client.on("error", err => {
-  console.error(`[DMN] Socket error: ${err.message}.`);
+  console.error(`[DMN] Remote socket error: ${err.message}.`);
 });
 
 client.on("data", async data => {
-  // console.log(`[DMN] Socket got remote data\n`, data);
+  // console.log(`[DMN] Remote socket got remote data\n`, data);
+  if (data.length !== 64) {
+    console.log("[DMN] Remote socket data:", data.toString());
+    return;
+  }
   const parsedData = parseData(data);
   const serial = parsedData.serial;
 
