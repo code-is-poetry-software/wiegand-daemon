@@ -1,7 +1,16 @@
 {
   "name": "wiegand-daemon",
-  "version": "1.0.1",
-  "description": "",
+  "version": "1.0.2",
+  "description": "Local network daemon to connect Wiegand access controller and remote server. 微耕门禁控制板局域网守护进程，用于与远端服务器通讯",
+  "keywords": [
+    "wiegand",
+    "微耕",
+    "门禁"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/code-is-poetry-software/wiegand-daemon.git"
+  },
   "main": "index.ts",
   "bin": {
     "wiegand-daemon": "./bin/index.js"
@@ -9,7 +18,8 @@
   "files": [
     "bin/*",
     "dist/*",
-    "**/*.ts"
+    "**/*.ts",
+    "*.example"
   ],
   "scripts": {
     "start": "nodemon --watch '**/*.ts' --exec 'ts-node' index.ts",

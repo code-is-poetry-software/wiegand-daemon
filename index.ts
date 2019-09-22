@@ -11,7 +11,12 @@ console.log(`[DMN] Local ip address is ${localIp}.`);
 
 const localPort = +(process.env.LOCAL_PORT || 6000);
 const remotePort = +(process.env.REMOTE_PORT || 8000);
-const remoteHost = process.env.REMOTE_HOST || "api.kangazone.com";
+const remoteHost = process.env.REMOTE_HOST;
+const storeId = process.env.STORE_ID;
+
+if (!remoteHost || !storeId) {
+  throw new Error("invalid_config");
+}
 
 const controllerBySerial: { [serial: number]: WgCtl } = {};
 
@@ -19,14 +24,14 @@ const socket = dgram.createSocket("udp4"); // local network using udp
 const client = new TcpSocket(); // remote network using tcp
 
 socket.on("error", err => {
-  console.log(`[DMN] Local socket error:\n${err.stack}.`);
+  console.log(`[UDP] Error:\n${err.stack}.`);
   socket.close();
 });
 
 socket.on("message", (msg, rinfo) => {
   const message = parseData(msg);
   console.log(
-    `[DMN] Local socket got local message from ${rinfo.address}:${rinfo.port}. \n`,
+    `[UDP] Got message from ${rinfo.address}:${rinfo.port}. \n`,
     message
   );
   if (message.funcName === "Search") {
@@ -49,43 +54,45 @@ socket.on("message", (msg, rinfo) => {
 
 socket.on("listening", async () => {
   const address = socket.address() as AddressInfo;
-  console.log(
-    `[DMN] Local socket listening ${address.address}:${address.port}.`
-  );
+  console.log(`[UDP] Listening ${address.address}:${address.port}.`);
   await searchLocalControllers(socket);
+  console.log(`[TCP] Connecting ${remoteHost}:${remotePort}...`);
   client.connect(remotePort, remoteHost);
 });
 
 socket.bind(localPort);
 
+client.setTimeout(5000);
+
 client.on("connect", () => {
   const address = client.remoteAddress;
   const port = client.remotePort;
-  console.log(`[DMN] Remote socket connected to ${address}:${port}.`);
+  console.log(`[TCP] Connected to ${address}:${port}.`);
   client.setTimeout(360000);
+  client.write(`store ${storeId}\r\n`);
   // TODO send local ip to remote server
 });
 
 client.on("timeout", () => {
-  console.log(`[DMN] Remote socket timeout.`);
-  client.destroy();
+  console.log("[TCP] Connection timeout.");
+  client.destroy(new Error("timeout"));
 });
 
 client.on("close", () => {
-  console.log(`[DMN] Remote socket closed, reconnect in 10 seconds.`);
+  console.log(`[TCP] Closed, reconnect in 10 seconds.`);
   setTimeout(() => {
     client.connect(remotePort, remoteHost);
   }, 10000);
 });
 
 client.on("error", err => {
-  console.error(`[DMN] Remote socket error: ${err.message}.`);
+  console.error(`[TCP] Error: ${err.message}.`);
 });
 
 client.on("data", async data => {
-  // console.log(`[DMN] Remote socket got remote data\n`, data);
+  // console.log(`[TCP] got remote data\n`, data);
   if (data.length !== 64) {
-    console.log("[DMN] Remote socket data:", data.toString());
+    console.log("[TCP] Data:", data.toString());
     return;
   }
   const parsedData = parseData(data);
@@ -121,7 +128,7 @@ async function searchLocalControllers(socket: UdpSocket) {
   return new Promise(resolve => {
     setTimeout(() => {
       console.log(
-        `[DMN] Search timeout, controller found:`,
+        `[UDP] Search timeout, controller found:`,
         Object.keys(controllerBySerial)
       );
       socket.setBroadcast(false);
