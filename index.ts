@@ -131,23 +131,26 @@ async function searchLocalControllers(socket: UdpSocket) {
   searchingControllerBySerial = {};
   new WgCtl(socket).search();
   return new Promise(resolve => {
-    setTimeout(() => {
-      const searchingSerials = Object.keys(searchingControllerBySerial);
-      const serials = Object.keys(controllerBySerial);
-      if (
-        searchingSerials.length === serials.length &&
-        searchingSerials.every(serial => serials.includes(serial))
-      ) {
-        return;
-      }
-      console.log(
-        `[UDP] Search timeout, controller changed:`,
-        Object.keys(searchingControllerBySerial).join(",")
-      );
-      controllerBySerial = searchingControllerBySerial;
-      socket.setBroadcast(false);
-      resolve();
-    }, 2000);
+    setTimeout(
+      () => {
+        const searchingSerials = Object.keys(searchingControllerBySerial);
+        const serials = Object.keys(controllerBySerial);
+        if (
+          searchingSerials.length === serials.length &&
+          searchingSerials.every(serial => serials.includes(serial))
+        ) {
+          return;
+        }
+        console.log(
+          `[UDP] Search timeout, controller changed:`,
+          Object.keys(searchingControllerBySerial).join(",")
+        );
+        controllerBySerial = searchingControllerBySerial;
+        socket.setBroadcast(false);
+        resolve();
+      },
+      process.env.SEARCH_TIMEOUT ? +process.env.SEARCH_TIMEOUT : 10000
+    );
   });
 }
 
