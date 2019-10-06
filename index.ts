@@ -18,7 +18,8 @@ if (!remoteHost || !storeId) {
   throw new Error("invalid_config");
 }
 
-const controllerBySerial: { [serial: number]: WgCtl } = {};
+let controllerBySerial: { [serial: number]: WgCtl } = {};
+let searchingControllerBySerial: { [serial: number]: WgCtl } = {};
 
 const socket = dgram.createSocket("udp4"); // local network using udp
 const client = new TcpSocket(); // remote network using tcp
@@ -35,7 +36,7 @@ socket.on("message", (msg, rinfo) => {
     JSON.stringify(message)
   );
   if (message.funcName === "Search") {
-    controllerBySerial[message.serial] = new WgCtl(
+    searchingControllerBySerial[message.serial] = new WgCtl(
       socket,
       message.serial,
       localIp,
@@ -56,6 +57,9 @@ socket.on("listening", async () => {
   const address = socket.address() as AddressInfo;
   console.log(`[UDP] Listening ${address.address}:${address.port}.`);
   await searchLocalControllers(socket);
+  // setInterval(async () => {
+  //   await searchLocalControllers(socket);
+  // }, 10000);
   console.log(`[TCP] Connecting ${remoteHost}:${remotePort}...`);
   client.connect(remotePort, remoteHost);
 });
@@ -124,13 +128,23 @@ client.on("data", async data => {
 
 async function searchLocalControllers(socket: UdpSocket) {
   socket.setBroadcast(true);
+  searchingControllerBySerial = {};
   new WgCtl(socket).search();
   return new Promise(resolve => {
     setTimeout(() => {
+      const searchingSerials = Object.keys(searchingControllerBySerial);
+      const serials = Object.keys(controllerBySerial);
+      if (
+        searchingSerials.length === serials.length &&
+        searchingSerials.every(serial => serials.includes(serial))
+      ) {
+        return;
+      }
       console.log(
-        `[UDP] Search timeout, controller found:`,
-        Object.keys(controllerBySerial)
+        `[UDP] Search timeout, controller changed:`,
+        Object.keys(searchingControllerBySerial).join(",")
       );
+      controllerBySerial = searchingControllerBySerial;
       socket.setBroadcast(false);
       resolve();
     }, 2000);
