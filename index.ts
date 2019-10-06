@@ -13,6 +13,8 @@ const localPort = +(process.env.LOCAL_PORT || 6000);
 const remotePort = +(process.env.REMOTE_PORT || 8000);
 const remoteHost = process.env.REMOTE_HOST;
 const storeId = process.env.STORE_ID;
+const searchTimeout = +(process.env.SEARCH_TIMEOUT || 3000);
+const searchInterval = +(process.env.SEARCH_INTERVAL || 300000);
 
 if (!remoteHost || !storeId) {
   throw new Error("invalid_config");
@@ -56,24 +58,22 @@ socket.on("message", (msg, rinfo) => {
 socket.on("listening", async () => {
   const address = socket.address() as AddressInfo;
   console.log(`[UDP] Listening ${address.address}:${address.port}.`);
-  await searchLocalControllers(socket);
-  // setInterval(async () => {
-  //   await searchLocalControllers(socket);
-  // }, 10000);
   console.log(`[TCP] Connecting ${remoteHost}:${remotePort}...`);
   client.connect(remotePort, remoteHost);
+  client.setTimeout(1000);
 });
 
 socket.bind(localPort);
 
-client.setTimeout(5000);
-
-client.on("connect", () => {
+client.on("connect", async () => {
   const address = client.remoteAddress;
   const port = client.remotePort;
   console.log(`[TCP] Connected to ${address}:${port}.`);
   client.setTimeout(360000);
-  client.write(`store ${storeId}\r\n`);
+  await searchAndReportLocalControllers(socket, client);
+  setInterval(async () => {
+    await searchAndReportLocalControllers(socket, client);
+  }, searchInterval);
   // TODO send local ip to remote server
 });
 
@@ -126,36 +126,51 @@ client.on("data", async data => {
   );
 });
 
-async function searchLocalControllers(socket: UdpSocket) {
+async function searchAndReportLocalControllers(
+  socket: UdpSocket,
+  client: TcpSocket
+) {
   socket.setBroadcast(true);
   searchingControllerBySerial = {};
   new WgCtl(socket).search();
-  return new Promise(resolve => {
-    setTimeout(
-      () => {
-        const searchingSerials = Object.keys(searchingControllerBySerial);
-        const serials = Object.keys(controllerBySerial);
-        if (
-          searchingSerials.length === serials.length &&
-          searchingSerials.every(serial => serials.includes(serial))
-        ) {
-          return;
-        }
-        console.log(
-          `[UDP] Search timeout, controller changed:`,
-          Object.keys(searchingControllerBySerial).join(",")
-        );
-        controllerBySerial = searchingControllerBySerial;
-        socket.setBroadcast(false);
-        resolve();
-      },
-      process.env.SEARCH_TIMEOUT ? +process.env.SEARCH_TIMEOUT : 10000
-    );
+  await new Promise(resolve => {
+    setTimeout(async () => {
+      resolve();
+    }, searchTimeout);
   });
-}
+  socket.setBroadcast(false);
+  const searchingSerials = Object.keys(searchingControllerBySerial);
+  const serials = Object.keys(controllerBySerial);
+  if (
+    !(
+      searchingSerials.length === serials.length &&
+      searchingSerials.every(serial => serials.includes(serial))
+    )
+  ) {
+    console.log(
+      `[UDP] Search timeout, controller changed:`,
+      Object.keys(searchingControllerBySerial).join(",")
+    );
+  }
 
-// setTimeout(async () => {
-//   const controllers = serials.map(serial => new WgCtl(socket, serial));
-//   await Promise.all(controllers.map(ctl => ctl.detected));
-//   controllers.map(c => c.getServerAddress());
-// }, 1000);
+  console.log(
+    `[TCP] Reporting searched controllers: ${Object.keys(
+      searchingControllerBySerial
+    ).join(",")}`
+  );
+  client.write(
+    `store ${JSON.stringify({
+      storeId,
+      serials: Object.keys(searchingControllerBySerial).map(s => +s)
+    })}\r\n`
+  );
+
+  controllerBySerial = searchingControllerBySerial;
+  if (searchingSerials.length < serials.length) {
+    console.warn(
+      `[DMN] Some controller is lost, controllers left: ${Object.keys(
+        controllerBySerial
+      ).join(",")}`
+    );
+  }
+}
