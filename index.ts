@@ -31,8 +31,8 @@ socket.on("error", err => {
 socket.on("message", (msg, rinfo) => {
   const message = parseData(msg);
   console.log(
-    `[UDP] Got message from ${rinfo.address}:${rinfo.port}. \n`,
-    message
+    `[UDP] Got message from ${rinfo.address}:${rinfo.port}.`,
+    JSON.stringify(message)
   );
   if (message.funcName === "Search") {
     controllerBySerial[message.serial] = new WgCtl(
