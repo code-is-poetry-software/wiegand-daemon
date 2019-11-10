@@ -65,15 +65,16 @@ socket.on("listening", async () => {
 
 socket.bind(localPort);
 
+setInterval(async () => {
+  await searchAndReportLocalControllers(socket, client);
+}, searchInterval);
+
 client.on("connect", async () => {
   const address = client.remoteAddress;
   const port = client.remotePort;
   console.log(`[TCP] Connected to ${address}:${port}.`);
   client.setTimeout(360000);
-  await searchAndReportLocalControllers(socket, client);
-  setInterval(async () => {
-    await searchAndReportLocalControllers(socket, client);
-  }, searchInterval);
+  searchAndReportLocalControllers(socket, client);
   // TODO send local ip to remote server
 });
 
@@ -158,12 +159,15 @@ async function searchAndReportLocalControllers(
       searchingControllerBySerial
     ).join(",")}`
   );
-  client.write(
-    `store ${JSON.stringify({
-      storeId,
-      serials: Object.keys(searchingControllerBySerial).map(s => +s)
-    })}\r\n`
-  );
+
+  if (client.writable) {
+    client.write(
+      `store ${JSON.stringify({
+        storeId,
+        serials: Object.keys(searchingControllerBySerial).map(s => +s)
+      })}\r\n`
+    );
+  }
 
   controllerBySerial = searchingControllerBySerial;
   if (searchingSerials.length < serials.length) {
